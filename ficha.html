@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Personagem RPG</title>
+    <!-- Carregando o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para usar a fonte Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Importa a fonte Inter do Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 p-4 sm:p-8">
+
+    <div class="max-w-3xl mx-auto">
+        
+        <header class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center text-cyan-400">Ficha de Personagem</h1>
+        </header>
+
+        <!-- Seção do Nome do Personagem -->
+        <section class="mb-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+            <label for="char-name" class="block text-lg font-medium text-gray-300 mb-2">Nome do Personagem:</label>
+            <input type="text" id="char-name" placeholder="Digite o nome do seu aventureiro..."
+                   class="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+        </section>
+
+        <!-- Seção para Criar Novos Atributos -->
+        <section class="mb-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-cyan-300">Criar Novo Atributo</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="attr-name" class="block text-sm font-medium text-gray-400 mb-1">Nome do Atributo:</label>
+                    <input type="text" id="attr-name" placeholder="Ex: Força, Magia..."
+                           class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                </div>
+                <div>
+                    <label for="attr-current" class="block text-sm font-medium text-gray-400 mb-1">Pontos (Atual / Máx):</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="attr-current" value="0" min="0"
+                               class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                               aria-label="Pontos Atuais">
+                        <span class="text-gray-400">/</span>
+                        <input type="number" id="attr-max" value="10" min="1"
+                               class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                               aria-label="Pontos Máximos">
+                    </div>
+                </div>
+            </div>
+            <button id="add-attr-btn" 
+                    class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-md transition duration-200 mt-5">
+                + Adicionar Atributo
+            </button>
+        </section>
+
+        <!-- Lista de Atributos Criados -->
+        <section>
+            <h2 class="text-2xl font-semibold mb-4 text-cyan-300">Atributos</h2>
+            <div id="attributes-list" class="space-y-4">
+                <!-- Atributos criados serão inseridos aqui via JavaScript -->
+                <p id="no-attr-placeholder" class="text-gray-500 text-center">Nenhum atributo criado ainda.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Selecionando os elementos do DOM
+        const addAttrBtn = document.getElementById('add-attr-btn');
+        const attrNameInput = document.getElementById('attr-name');
+        const attrCurrentInput = document.getElementById('attr-current'); // Adicionado
+        const attrMaxInput = document.getElementById('attr-max');
+        const attributesList = document.getElementById('attributes-list');
+        // const noAttrPlaceholder = document.getElementById('no-attr-placeholder'); // Removido da busca global
+
+        // Adiciona o evento de clique ao botão principal
+        addAttrBtn.addEventListener('click', createAttribute);
+
+        /**
+         * Função principal para criar um novo atributo e adicioná-lo à lista.
+         */
+        function createAttribute() {
+            // 1. Obter os valores dos inputs
+            const name = attrNameInput.value.trim();
+            const maxPoints = parseInt(attrMaxInput.value);
+            let currentPoints = parseInt(attrCurrentInput.value); // Modificado
+
+            // 2. Validar os valores
+            if (name === "") {
+                // Não usamos alert(), apenas damos um feedback visual simples
+                attrNameInput.focus();
+                attrNameInput.classList.add('border-red-500', 'ring-red-500');
+                setTimeout(() => {
+                    attrNameInput.classList.remove('border-red-500', 'ring-red-500');
+                }, 2000);
+                return; // Para a execução se o nome estiver vazio
+            }
+
+            if (isNaN(maxPoints) || maxPoints <= 0) {
+                // Feedback visual para o limite de pontos
+                attrMaxInput.focus();
+                attrMaxInput.classList.add('border-red-500', 'ring-red-500');
+                setTimeout(() => {
+                    attrMaxInput.classList.remove('border-red-500', 'ring-red-500');
+                }, 2000);
+                return; // Para a execução se o limite for inválido
+            }
+
+            // Validação para pontos atuais (pode ser 0, mas não negativo)
+            if (isNaN(currentPoints) || currentPoints < 0) {
+                attrCurrentInput.focus();
+                attrCurrentInput.classList.add('border-red-500', 'ring-red-500');
+                setTimeout(() => {
+                    attrCurrentInput.classList.remove('border-red-500', 'ring-red-500');
+                }, 2000);
+                return;
+            }
+
+            // Validação para garantir que atual não é maior que máximo
+            if (currentPoints > maxPoints) {
+                attrCurrentInput.focus();
+                attrCurrentInput.classList.add('border-red-500', 'ring-red-500');
+                attrMaxInput.classList.add('border-red-500', 'ring-red-500');
+                setTimeout(() => {
+                    attrCurrentInput.classList.remove('border-red-500', 'ring-red-500');
+                    attrMaxInput.classList.remove('border-red-500', 'ring-red-500');
+                }, 2000);
+                return; // Para a execução
+            }
+            
+            // Se for o primeiro atributo, remove o placeholder
+            // Busca o placeholder no momento da criação
+            const placeholder = document.getElementById('no-attr-placeholder');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            // 3. Gerenciar o estado interno do atributo (pontos atuais)
+            // A linha 'let currentPoints = 0;' foi removida, pois o valor agora vem do input.
+
+            // 4. Criar os elementos HTML para o novo atributo
+            
+            // O "card" principal do atributo
+            const attrCard = document.createElement('div');
+            attrCard.className = 'bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center shadow-md transition-all duration-300';
+
+            // O nome do atributo
+            const attrTitle = document.createElement('h3');
+            attrTitle.className = 'text-xl font-semibold text-white mb-3 sm:mb-0';
+            attrTitle.textContent = name;
+
+            // O container para os controles de pontos
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'flex items-center space-x-3';
+
+            // Botão de diminuir (-)
+            const btnDecrease = document.createElement('button');
+            btnDecrease.className = 'bg-gray-600 hover:bg-gray-500 text-white font-bold h-8 w-8 rounded-full flex items-center justify-center transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+            btnDecrease.textContent = '-';
+            btnDecrease.disabled = (currentPoints === 0); // Modificado: desabilita se já começar em 0
+
+            // O display de pontos (Ex: 0 / 10)
+            const pointsDisplay = document.createElement('span');
+            pointsDisplay.className = 'text-lg font-mono text-center w-16';
+            
+            const currentSpan = document.createElement('span');
+            currentSpan.className = 'current-points font-bold text-cyan-400';
+            currentSpan.textContent = currentPoints;
+            
+            const maxSpan = document.createElement('span');
+            maxSpan.className = 'max-points text-gray-400';
+            maxSpan.textContent = ` / ${maxPoints}`;
+            
+            pointsDisplay.append(currentSpan, maxSpan);
+
+            // Botão de aumentar (+)
+            const btnIncrease = document.createElement('button');
+            btnIncrease.className = 'bg-gray-600 hover:bg-gray-500 text-white font-bold h-8 w-8 rounded-full flex items-center justify-center transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+            btnIncrease.textContent = '+';
+            // Modificado: desabilita se já começar no máximo
+            btnIncrease.disabled = (currentPoints === maxPoints); 
+
+            // Botão de deletar (X) - NOVO
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'bg-red-600 hover:bg-red-700 text-white font-bold h-8 w-8 rounded-full flex items-center justify-center transition duration-150';
+            btnDelete.textContent = 'X';
+            btnDelete.title = 'Apagar Atributo'; // Dica ao passar o mouse
+
+            // 5. Adicionar a lógica (event listeners) aos botões + e -
+
+            // Lógica para AUMENTAR pontos
+            btnIncrease.addEventListener('click', () => {
+                if (currentPoints < maxPoints) {
+                    currentPoints++;
+                    currentSpan.textContent = currentPoints;
+                    
+                    // Habilita o botão de diminuir
+                    btnDecrease.disabled = false;
+                }
+                
+                // Se atingir o limite, desabilita o botão de aumentar
+                if (currentPoints === maxPoints) {
+                    btnIncrease.disabled = true;
+                }
+            });
+
+            // Lógica para DIMINUIR pontos
+            btnDecrease.addEventListener('click', () => {
+                if (currentPoints > 0) {
+                    currentPoints--;
+                    currentSpan.textContent = currentPoints;
+                    
+                    // Habilita o botão de aumentar
+                    btnIncrease.disabled = false;
+                }
+
+                // Se atingir zero, desabilita o botão de diminuir
+                if (currentPoints === 0) {
+                    btnDecrease.disabled = true;
+                }
+            });
+
+            // Lógica para DELETAR o atributo - NOVO
+            btnDelete.addEventListener('click', () => {
+                // Remove o "card" do atributo
+                attrCard.remove();
+
+                // Verifica se a lista de atributos está vazia agora
+                if (attributesList.children.length === 0) {
+                    // Se estiver vazia, adiciona o placeholder de volta
+                    const newPlaceholder = document.createElement('p');
+                    newPlaceholder.id = 'no-attr-placeholder'; // ID é importante para ser encontrado da próxima vez
+                    newPlaceholder.className = 'text-gray-500 text-center';
+                    newPlaceholder.textContent = 'Nenhum atributo criado ainda.';
+                    attributesList.appendChild(newPlaceholder);
+                }
+            });
+
+            // 6. Montar o "card" do atributo
+            controlsDiv.append(btnDecrease, pointsDisplay, btnIncrease, btnDelete); // Adicionado btnDelete
+            attrCard.append(attrTitle, controlsDiv);
+
+            // 7. Adicionar o "card" completo à lista na página
+            attributesList.appendChild(attrCard);
+
+            // 8. Limpar os campos do formulário
+            attrNameInput.value = '';
+            attrCurrentInput.value = '0'; // Adicionado: reseta os pontos atuais
+            attrMaxInput.value = '10'; // Reseta para o padrão
+            attrNameInput.focus(); // Foca no nome para o próximo atributo
+        }
+    </script>
+
+</body>
+</html>
+
+
